@@ -2,6 +2,10 @@ const paperModules = import.meta.glob('../../paper/*.md', { as: 'raw', eager: tr
 const gameModules = import.meta.glob('../../game/*.md', { as: 'raw', eager: true })
 const otherModules = import.meta.glob('../../other/*.md', { as: 'raw', eager: true })
 const paperPdfModules = import.meta.glob('../../paper/*.pdf', { as: 'url', eager: true })
+const sharedImageModules = import.meta.glob('../../image/**/*.{png,jpg,jpeg,gif,webp,svg,avif}', {
+  as: 'url',
+  eager: true,
+})
 const paperImageModules = import.meta.glob('../../paper/**/*.{png,jpg,jpeg,gif,webp,svg,avif}', {
   as: 'url',
   eager: true,
@@ -100,9 +104,10 @@ function parseModules(modules, category) {
 }
 
 function getImageMapByCategory(category) {
-  if (category === 'paper') return paperImageModules
-  if (category === 'game') return gameImageModules
-  return otherImageModules
+  const map = { ...sharedImageModules }
+  if (category === 'paper') return { ...map, ...paperImageModules }
+  if (category === 'game') return { ...map, ...gameImageModules }
+  return { ...map, ...otherImageModules }
 }
 
 function resolveImageUrl(imageValue, markdownPath, imageMap) {
@@ -123,7 +128,17 @@ function resolveImageUrl(imageValue, markdownPath, imageMap) {
   const normalizedRelative = trimmed.replace(/\\/g, '/').replace(/^\.\//, '')
   const candidate = `${markdownDir}${normalizedRelative}`
   const normalizedCandidate = normalizePath(candidate)
-  return imageMap[normalizedCandidate] || trimmed
+  if (imageMap[normalizedCandidate]) return imageMap[normalizedCandidate]
+
+  // Support shared root image folder references like "image/foo.png"
+  const sharedCandidate = normalizePath(`../../${normalizedRelative}`)
+  if (imageMap[sharedCandidate]) return imageMap[sharedCandidate]
+
+  // Also allow explicit leading slash style "/image/foo.png"
+  const slashCandidate = normalizePath(`../../${normalizedRelative.replace(/^\//, '')}`)
+  if (imageMap[slashCandidate]) return imageMap[slashCandidate]
+
+  return trimmed
 }
 
 function getPaperPdfEntries() {
