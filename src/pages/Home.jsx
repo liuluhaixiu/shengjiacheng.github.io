@@ -1,10 +1,13 @@
 import './Home.css'
+import mePhoto from '../../image/me.jpg'
 
 function Home() {
   return (
     <div className="home-page">
       <section className="hero">
-        <div className="hero-avatar">👤</div>
+        <div className="hero-avatar">
+          <img src={mePhoto} alt="Shengjia Cheng" className="hero-avatar-image" />
+        </div>
         <div className="hero-info">
           <h1 className="hero-name">Hi, I'm Shengjia Cheng</h1>
           <p className="hero-title">Master Candidate · Artificial Intelligence & Computer Vision</p>
